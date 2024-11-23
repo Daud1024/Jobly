@@ -1,4 +1,4 @@
-version: 2.1 
+version: 2.1
 
 orbs:
   node: circleci/node@5
@@ -10,7 +10,6 @@ jobs:
       JEST_JUNIT_OUTPUT_DIR: ./test-results/
       SONAR_HOST_URL: https://sonarcloud.io
       SONAR_PROJECT_KEY: Daud1024_Jobly
-      SONAR_ORGANIZATION: daud1024  # Replace with your actual organization key
     steps:
       - checkout
       - node/install-packages:
@@ -18,15 +17,17 @@ jobs:
       - run:
           name: Install Jest JUnit and SonarQube Scanner
           command: npm install jest-junit sonarqube-scanner --save-dev
-      - run:
+      - run: 
           name: Create Test Results Directory (if missing)
           command: mkdir -p ./test-results
+      - run:
+          name: Run tests with Jest optimization
+          command: npm run test --ci --maxWorkers=50% --reporters=default --reporters=jest-junit
       - run:
           name: Run SonarQube Scanner
           command: |
             npx sonarqube-scanner \
               -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-              -Dsonar.organization=$SONAR_ORGANIZATION \
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.login=$SONAR_TOKEN \
               -Dsonar.sources=. \
@@ -38,3 +39,5 @@ workflows:
     jobs:
       - test-node
 
+         
+  
