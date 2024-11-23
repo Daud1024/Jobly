@@ -1,38 +1,61 @@
 version: 2.1
 
-orbs:
-  node: circleci/node@5
+executors:
+  node-executor:
+    docker:
+      - image: circleci/node:17
 
 jobs:
-  test-node:
-    executor: node/default
-    environment:
-      JEST_JUNIT_OUTPUT_DIR: ./test-results/
-      SONAR_HOST_URL: https://sonarcloud.io
-      SONAR_PROJECT_KEY: Daud1024_Jobly
-      SONAR_ORGANIZATION: daud1024  
+  install_dependencies:
+    executor: node-executor
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: npm
       - run:
-          name: Install Jest JUnit and SonarQube Scanner
-          command: npm install jest-junit sonarqube-scanner --save-dev
+          name: List Directory Contents
+          command: ls -la portal
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "portal/package.json" }}
+            - v1-dependencies-
       - run:
-          name: Run SonarQube Scanner
+          name: Install dependencies
+          command: npm install --prefix portal
+      - save_cache:
+          paths:
+            - portal/node_modules
+          key: v1-dependencies-{{ checksum "portal/package.json" }}
+
+  sonar_scan:
+    executor: node-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "portal/package.json" }}
+      - run:
+          name: Install SonarQube Scanner
+          command: npm install --save-dev sonarqube-scanner --prefix portal
+      - run:
+          name: Create Test Results Directory (if missing)
+          command: mkdir -p ./test-results
+      - run:
+          name: Run SonarQube Scan
           command: |
             npx sonarqube-scanner \
-              -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-              -Dsonar.organization=$SONAR_ORGANIZATION \
-              -Dsonar.host.url=$SONAR_HOST_URL \
-              -Dsonar.login=$SONAR_TOKEN \
-              -Dsonar.sources=. \
-              -Dsonar.exclusions=node_modules/**,test-results/** \
-              -Dsonar.tests=./test-results
+              -Dsonar.projectKey=Daud1024_APDS7311_POE \
+              -Dsonar.organization=daud1024 \
+              -Dsonar.sources=portal \
+              -Dsonar.host.url=${SONAR_HOST_URL} \
+              -Dsonar.login=${SONAR_TOKEN} \
+              -Dsonar.tests=./test-results \
+              -Dsonar.exclusions=node_modules/**
 
 workflows:
-  build-and-test:
+  version: 2
+  main_workflow:
     jobs:
-      - test-node
+      - install_dependencies
+      - sonar_scan
+
 
 
