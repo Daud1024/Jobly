@@ -1,3 +1,4 @@
+//Sample Unit Test
 const add = (a, b) => a + b;
 
 test('adds 1 + 2 to equal 3', () => {
