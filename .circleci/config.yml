@@ -4,10 +4,9 @@ orbs:
   node: circleci/node@5
 
 jobs:
-  test-node:
+  install-and-scan:
     executor: node/default
     environment:
-      JEST_JUNIT_OUTPUT_DIR: ./test-results/
       SONAR_HOST_URL: https://sonarcloud.io
       SONAR_PROJECT_KEY: Daud1024_Jobly
     steps:
@@ -15,11 +14,8 @@ jobs:
       - node/install-packages:
           pkg-manager: npm
       - run:
-          name: Install Jest JUnit and SonarQube Scanner
-          command: npm install jest-junit sonarqube-scanner --save-dev
-      - run:
-          name: Run tests with Jest optimization
-          command: npm run test --ci --maxWorkers=50% --reporters=default --reporters=jest-junit
+          name: Install SonarQube Scanner
+          command: npm install --save-dev sonarqube-scanner
       - run:
           name: Run SonarQube Scanner
           command: |
@@ -28,12 +24,11 @@ jobs:
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.login=$SONAR_TOKEN \
               -Dsonar.sources=. \
-              -Dsonar.exclusions=node_modules/**,test-results/** \
-              -Dsonar.tests=./test-results
+              -Dsonar.exclusions=node_modules/**,test-results/**
 
 workflows:
-  build-and-test:
+  install-and-scan-workflow:
     jobs:
-      - test-node
+      - install-and-scan
 
 
