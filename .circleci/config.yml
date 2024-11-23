@@ -1,26 +1,34 @@
 version: 2.1
+
 orbs:
   node: circleci/node@5
+
 jobs:
   test-node:
     executor: node/default
     environment:
       JEST_JUNIT_OUTPUT_DIR: ./test-results/
-      # Add SonarQube host URL and project key if needed as env variables
-      SONAR_HOST_URL: https://sonarcloud.io # or your SonarQube server URL
-      SONAR_PROJECT_KEY: Daud1024_Jobly
+      # SonarQube credentials and URL
+      SONAR_HOST_URL: https://sonarcloud.io  # or SonarQube server URL
+      SONAR_PROJECT_KEY: Daud1024_Jobly      
+      SONAR_TOKEN: $SONAR_TOKEN              
     steps:
       - checkout
+      # Install node dependencies and Jest
       - node/install-packages:
           pkg-manager: npm
+      # Install additional dependencies for Jest JUnit and SonarQube Scanner
       - run:
           name: Install Jest JUnit and SonarQube Scanner
           command: npm install jest-junit sonarqube-scanner --save-dev
+      # Run tests and generate JUnit XML report
       - run:
           name: Run tests
           command: npm run test --ci --runInBand --reporters=default --reporters=jest-junit
+      # Store test results for CircleCI to display
       - store_test_results:
           path: ./test-results/
+      # Run SonarQube scanner
       - run:
           name: Run SonarQube Scanner
           command: |
@@ -36,4 +44,5 @@ workflows:
   build-and-test:
     jobs:
       - test-node
+
 
