@@ -19,6 +19,9 @@ jobs:
           name: Install Jest JUnit and SonarQube Scanner
           command: npm install jest-junit sonarqube-scanner --save-dev
       - run:
+          name: Create Test Results Directory (if missing)
+          command: mkdir -p ./test-results
+      - run:
           name: Run SonarQube Scanner
           command: |
             npx sonarqube-scanner \
@@ -28,6 +31,7 @@ jobs:
               -Dsonar.login=$SONAR_TOKEN \
               -Dsonar.sources=. \
               -Dsonar.exclusions=node_modules/**,test-results/** \
+              -Dsonar.tests=./test-results
 
 workflows:
   build-and-test:
