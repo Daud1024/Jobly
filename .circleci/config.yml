@@ -3,34 +3,37 @@ orbs:
   node: circleci/node@5
 jobs:
   test-node:
-    # Install node dependencies and run tests
     executor: node/default
     environment:
       JEST_JUNIT_OUTPUT_DIR: ./test-results/
+      # Add SonarQube host URL and project key if needed as env variables
+      SONAR_HOST_URL: https://sonarcloud.io # or your SonarQube server URL
+      SONAR_PROJECT_KEY: Daud1024_Jobly
     steps:
       - checkout
       - node/install-packages:
           pkg-manager: npm
       - run:
-          command: npm install jest-junit
+          name: Install Jest JUnit and SonarQube Scanner
+          command: npm install jest-junit sonarqube-scanner --save-dev
       - run:
           name: Run tests
           command: npm run test --ci --runInBand --reporters=default --reporters=jest-junit
       - store_test_results:
           path: ./test-results/
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
-    docker:
-      - image: cimg/base:stable
-    steps:
-      # Replace this with steps to deploy to users
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+          name: Run SonarQube Scanner
+          command: |
+            npx sonarqube-scanner \
+              -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+              -Dsonar.host.url=$SONAR_HOST_URL \
+              -Dsonar.login=$SONAR_TOKEN \
+              -Dsonar.sources=. \
+              -Dsonar.exclusions=node_modules/**,test-results/** \
+              -Dsonar.tests=./test-results
+
 workflows:
   build-and-test:
     jobs:
       - test-node
-    # - deploy:
-    #     requires:
-    #       - test-node
+
