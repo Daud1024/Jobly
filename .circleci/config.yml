@@ -1,4 +1,4 @@
-version: 2.1 # Fix
+version: 2.1
 
 orbs:
   node: circleci/node@5
@@ -10,6 +10,7 @@ jobs:
       JEST_JUNIT_OUTPUT_DIR: ./test-results/
       SONAR_HOST_URL: https://sonarcloud.io
       SONAR_PROJECT_KEY: Daud1024_Jobly
+      SONAR_ORGANIZATION: daud1024  
     steps:
       - checkout
       - node/install-packages:
@@ -22,6 +23,7 @@ jobs:
           command: |
             npx sonarqube-scanner \
               -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+              -Dsonar.organization=$SONAR_ORGANIZATION \
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.login=$SONAR_TOKEN \
               -Dsonar.sources=. \
